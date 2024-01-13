@@ -18,11 +18,17 @@ struct ntp_packet
     unsigned long long transmit_timestamp;
 };
 
-
 #define ntp_format ">BBBBII4sIIIIIIII"
 #define leap 0
 #define version 4
 #define mode 3
+
+size_t convertBigToLittleEndian(size_t bigEndianValue) {
+    return ((bigEndianValue & 0xFF000000) >> 24) |
+           ((bigEndianValue & 0x00FF0000) >> 8)  |
+           ((bigEndianValue & 0x0000FF00) << 8)  |
+           ((bigEndianValue & 0x000000FF) << 24);
+}
 
 int main(int argc, char **argv) {
 
@@ -96,10 +102,16 @@ int main(int argc, char **argv) {
     struct ntp_packet *ntp_fields = (struct ntp_packet *)response;
 
     printf("%u %u %u\n", ntp_fields->leap_version_mode >> 6, (ntp_fields->leap_version_mode >> 3) & 0b111, ntp_fields->leap_version_mode & 0b111);
-    printf("%u %u %u\n", ntp_fields->stratum, ntp_fields->poll, ntp_fields->precision);
-    printf("%s\n", ntp_fields->refid);
-    printf("%llu\n", ntp_fields->ref_timestamp);
-    printf("%llu %llu\n", ntp_fields->receive_timestamp, ntp_fields->transmit_timestamp);
+    printf("Stratum: %d\n",ntp_fields->stratum);
+    printf("Poll: %d\n",ntp_fields->poll);
+    printf("Precision: %d\n",ntp_fields->precision);
+    printf("Root delay: %d\n",ntp_fields->root_delay);
+    printf("Root dispersion: %zu\n", convertBigToLittleEndian(ntp_fields->root_dispersion));
+    printf("Refid: %.4s\n", ntp_fields->refid);
+    printf("Ref TimeStamp: %llu\n", convertBigToLittleEndian(ntp_fields->ref_timestamp));
+    printf("Ref Orignal TimeStamp: %llu\n", convertBigToLittleEndian(ntp_fields->original_timestamp));
+    printf("Receive TimeStamp: %llu\n", convertBigToLittleEndian(ntp_fields->receive_timestamp));
+    printf("Transmit TimeStamp: %llu\n", convertBigToLittleEndian(ntp_fields->transmit_timestamp));
 
     closesocket(s);
     WSACleanup();
