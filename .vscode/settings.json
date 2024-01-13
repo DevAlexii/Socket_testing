@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "socketapi.h": "c",
+        "stdio.h": "c"
+    }
+}
